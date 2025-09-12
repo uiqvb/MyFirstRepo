@@ -16,6 +16,18 @@ def cmd_toggle(book_id):
     b = library.toggle_availability(book_id)
     print(f"Toggled availability for #{b['id']} → {'Yes' if b['available'] else 'No'}")
 
+def cmd_search(keyword):
+    keyword = keyword.lower()
+    matches = [b for b in library.list_books() if keyword in b["title"].lower()]
+    if not matches:
+        print("No matches.")
+        return
+    print(tabulate(
+        [[b["id"], b["title"], b["author"], "Yes" if b["available"] else "No"] for b in matches],
+        headers=["ID", "Title", "Author", "Available"],
+        tablefmt="github"
+    ))
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Library App")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -29,6 +41,9 @@ if __name__ == "__main__":
     p_toggle = sub.add_parser("toggle", help="Toggle availability")
     p_toggle.add_argument("--id", required=True, type=int)
 
+    p_search = sub.add_parser("search", help="Search by title keyword")
+    p_search.add_argument("--keyword", required=True)
+
     args = p.parse_args()
 
     if args.cmd == "list":
@@ -37,3 +52,6 @@ if __name__ == "__main__":
         cmd_add(args.title, args.author)
     elif args.cmd == "toggle":
         cmd_toggle(args.id)
+    elif args.cmd == "search":
+        cmd_search(args.keyword)
+
